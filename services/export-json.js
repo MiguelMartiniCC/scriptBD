@@ -1,49 +1,88 @@
-import fs from 'fs'; //Manipulação de diretórios e arquivos.
-import path from 'path'; //Obter caminho
-import { pool } from '../database/db.js';//Conexão com o postgresql.
+import fs from 'fs'; //Biblioteca utilizada para manipulação de diretórios.
+import path from 'path'; //Biblioteca utilizada para obter o caminho.
+import { pool } from '../database/db.js'; //Pool de conexão com o banco de dados.
 
-//Cria um vetor com o nome das tabelas que serão exportadas para arquivo CSV.
-const tables = ["clientes", "mercadorias", "trajetos"]
+//Tabelas presentes no banco de dados.
+const tables = ["clientes", "mercadorias", "trajetos"];
 
-//Função para exportar dados do banco PostgreSQL para CSV.
+//Função para exportar dados para arquivos json.
 export async function exportJson() {
 
-    //Define o nome do diretório e o lugar onde vai ser criado.
+    //Define o nome e caminho para o diretório de exportações.
     const exportDir = path.resolve("./exports");
 
-    //Cria o diretório pegando o caminho, não dá erro se já existir diretório com mesmo nome.
+    //Cria o diretório e verifica se já existe um com o mesmo nome.
     fs.mkdirSync(exportDir, { recursive: true });
 
-    //Pega cada tabela do banco e exporta para CSV.
+    //Cria um arquivo json para cada tabela.
     for (const table of tables) {
 
-        //Mensagem notificando exportação.
+        //Notifica o processo de exportação.
         console.log(`Exportando tabela ${table}...`);
 
-        //Query utilizada para obter os dados da tabela especificada.
-        const result = await pool.query(`SELECT * FROM ${table}`);
+        //Define a variável result
+        let result;
 
-        //Pega os dados obtidos da consulta e converte para Json.
-        const dataJson = await JSON.stringify(result.rows, null, 2)
+        // Caso seja trajetos, utiliza o join para unir elementos.
+        if (table === "trajetos") {
+            result = await pool.query(`
+                SELECT 
+                    t.id,
+                    t.rua,
+                    t.bairro,
+                    t.cidade,
+                    t.numero,
+                    t.dataAtual,
+                    t.dataCriacao,
 
-        //Define o nome final do arquivo Json
+                    -- Dados do cliente
+                    json_build_object(
+                        'id', c.id,
+       	                'nome', c.nome,
+                        'pedidos', c.pedidos,
+                        'dataCriacao', c.dataCriacao
+                    ) AS cliente,
+
+                    -- Dados da mercadoria
+                    json_build_object(
+                        'id', m.id,
+                        'nome', m.nome,
+                        'valor', m.valor,
+                        'descricao', m.descricao
+                    ) AS mercadoria
+
+                FROM trajetos t
+                JOIN clientes c ON c.id = t.cliente_id
+                JOIN mercadorias m ON m.id = t.mercadoria_id
+                ORDER BY t.id;
+            `);
+        }
+        else {
+            //Seleção normal
+            result = await pool.query(`SELECT * FROM ${table}`);
+        }
+
+        //Converte cada linha do resultado obtido da seleção para o formato json.
+        const dataJson = JSON.stringify(result.rows, null, 2);
+
+        //Define o nome do arquivo e o diretório que será armazenado.
         const outPutPath = path.join(exportDir, `${table}.json`);
 
-        //Cria o arquivo json no caminho indicado.
-        fs.writeFileSync(outPutPath,dataJson);
+        //Salva o arquivo json.
+        fs.writeFileSync(outPutPath, dataJson);
 
-        //Notifica aonde o Json foi gerado.
+        //Notifica criação do json.
         console.log(`Json gerado em: ${outPutPath}`);
     }
 
-    //Finaliza conexão com o banco.
+    //Finaliza conexão com o banco de dados.
     await pool.end();
 
-    //Notifica fim do procedimento.
-    console.log("Exportações concluídas.")
+    //Notifica término das exportações.
+    console.log("Exportações concluídas.");
 }
 
-//Utilizado para execução direta (sem utilizar o npm run export-csv)
+// Execução direta (Não utilizando o npm run export-json)
 if (process.argv[1].includes("export-json.js")) {
     exportJson();
 }
