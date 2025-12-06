@@ -18,15 +18,21 @@ cd scriptBD
 npm i
 ```
 ---
-4. Comando para criação de banco e tabelas
+4. Copie o arquivo `.env.template` para `.env`, e ajuste as variáveis de acordo com o seu banco de dados:
+```bash
+copy .env.example .env
+```
+---
+5. Comando para criação de banco e tabelas
 ```bash
 npm run reset-database
 ```
 ---
-5. Comando para realizar conversões de dado
+6. Comando para realizar conversões de dado
 ```bash
 npm run export-json 
 ```
+---
 ## Utilizando MongoDB Atlas
 - Para utilizar o serviço em nuvem do MongoDB e conectar com o script, segue os seguintes passos:
 ---
