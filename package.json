@@ -7,6 +7,7 @@
   "scripts": {
     "reset-database": "node commands/reset-database.js",
     "export-json": "node services/export-json.js",
+    "import-json": "node services/import-json.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],

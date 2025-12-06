@@ -1,4 +1,4 @@
-import { MongoClient } from "mongodb";
+import {mongoclient} from '../database/mongo.js';
 import fs from "fs";
 
 async function importarDados() {
@@ -6,12 +6,10 @@ async function importarDados() {
     // Lê o arquivo JSON
     const data = JSON.parse(fs.readFileSync("exports/clientes.json", "utf8"));
     // console.log(data)
-    const client = new MongoClient("") //Aqui deve ser inserido a string de conexão com o atlas do mongoDB
-    await client.connect();
-
+    await mongoclient.connect()
     // console.log("Conexão feita!");
 
-    const db = client.db("clientes");
+    const db = mongoclient.db("clientes");
     const colecao = db.collection("users");
 
     const resultado = await colecao.insertMany(data);
@@ -19,10 +17,13 @@ async function importarDados() {
     console.log("Importação concluída!");
     console.log("Total inserido:", resultado.insertedCount);
 
-    await client.close();
+    await mongoclient.close();
   } catch (erro) {
     console.error("Erro ao importar:", erro);
   }
 }
 
-importarDados();
+if (process.argv[1].includes("import-json.js")) {
+    importarDados();
+}
+
