@@ -22,7 +22,7 @@ async function importarDados() {
   } catch (erro) {
     console.error("Erro ao importar:", erro);
     console.log("============================");
-    console.log("Tente novamente ou CTRL + C para sair");
+    console.log("Verifique se o arquivo foi exportado em json ou CTRL + C para sair");
     importarDados();
   }
 }
