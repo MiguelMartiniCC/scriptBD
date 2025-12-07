@@ -3,7 +3,7 @@ import path from 'path'; //Biblioteca utilizada para obter o caminho.
 import { pool } from '../database/db.js'; //Pool de conexão com o banco de dados.
 
 //Tabelas presentes no banco de dados.
-const tables = ["clientes", "mercadorias", "trajetos"];
+const tables = ["mensagens_clientes", "sensores_iot", "comprovantes"];
 
 //Função para exportar dados para arquivos json.
 export async function exportJson() {
@@ -21,47 +21,8 @@ export async function exportJson() {
         console.log(`Exportando tabela ${table}...`);
 
         //Define a variável result
-        let result;
-
-        // Caso seja trajetos, utiliza o join para unir elementos.
-        if (table === "trajetos") {
-            result = await pool.query(`
-                SELECT 
-                    t.id,
-                    t.rua,
-                    t.bairro,
-                    t.cidade,
-                    t.numero,
-                    t.dataAtual,
-                    t.dataCriacao,
-
-                    -- Dados do cliente
-                    json_build_object(
-                        'id', c.id,
-       	                'nome', c.nome,
-                        'pedidos', c.pedidos,
-                        'dataCriacao', c.dataCriacao
-                    ) AS cliente,
-
-                    -- Dados da mercadoria
-                    json_build_object(
-                        'id', m.id,
-                        'nome', m.nome,
-                        'valor', m.valor,
-                        'descricao', m.descricao
-                    ) AS mercadoria
-
-                FROM trajetos t
-                JOIN clientes c ON c.id = t.cliente_id
-                JOIN mercadorias m ON m.id = t.mercadoria_id
-                ORDER BY t.id;
-            `);
-        }
-        else {
-            //Seleção normal
-            result = await pool.query(`SELECT * FROM ${table}`);
-        }
-
+        let result = await pool.query(`SELECT * FROM ${table}`);
+    
         //Converte cada linha do resultado obtido da seleção para o formato json.
         const dataJson = JSON.stringify(result.rows, null, 2);
 

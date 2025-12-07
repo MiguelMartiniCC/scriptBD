@@ -12,7 +12,7 @@ dotenv.config(); // Executa a leitura do .env.
 // Monta as variáveis de configuração do banco.
 const HOST = process.env.PGHOST || process.env.DB_HOST || "localhost";
 const PORT = process.env.PGPORT || process.env.DB_PORT || "5432"; // pode ser string
-const DATABASE = process.env.PGDATABASE || process.env.DB_DATABASE || "transportadora_db";
+const DATABASE = process.env.PGDATABASE || process.env.DB_DATABASE || "techlog_db";
 const USER = process.env.PGUSER || process.env.DB_USER || "postgres";
 const PASSWORD = process.env.PGPASSWORD || process.env.DB_PASSWORD || "postgres";
 
